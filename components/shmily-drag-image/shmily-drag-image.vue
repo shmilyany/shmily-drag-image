@@ -17,7 +17,7 @@
         >
           <view class="area-con" :style="{ width: viewWidth, height: viewWidth, transform: 'scale(' + item.scale + ')' }">
             <image class="pre-image" :src="item.src" mode="aspectFill"></image>
-            <view class="del-con" @click="delImage(item, index)" @touchstart.stop="delImage(item, index)">
+            <view class="del-con" @click="delImage(item, index)">
               <view class="del-wrap">
                 <image
                   class="del-image"

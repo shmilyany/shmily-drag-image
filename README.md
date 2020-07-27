@@ -19,13 +19,13 @@ export default {
 ```
 ### 在 template 中使用组件
 ```
-<shmily-drag-image :list="list"></shmily-drag-image>
+<shmily-image-drag :list.sync="list" :number="6" :imageWidth="230"></shmily-image-drag>
 ```
 ---
 
 
 属性名 | 类型 | 默认值 | 说明
 :-:|:-:|:-:|---
-list | Array | [] | 排序后图片列表
+list | Array | [ ] | 排序后图片列表
 number | Number | 6 | 图片数量限制
 imageWidth | Number | 230 | 图片父容器宽度（实际显示的图片宽度为 imageWidth / 1.1 ），单位 rpx
