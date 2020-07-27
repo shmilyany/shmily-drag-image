@@ -54,7 +54,7 @@ export default {
         x: 0,
         y: 0
       },
-      cols: 0
+      cols: 0,
     }
   },
   props: {
@@ -74,7 +74,8 @@ export default {
     imageWidth: {
       type: Number,
       default: 230
-    }
+    },
+    
   },
   computed: {
     areaHeight() {
@@ -86,7 +87,7 @@ export default {
     },
     viewWidth() {
       return this.imageWidth / 1.1 + 'rpx'
-    }
+    },
   },
   mounted() {
     const query = uni.createSelectorQuery().in(this)
@@ -163,12 +164,13 @@ export default {
         count: checkNumber,
         sourceType: ['album', 'camera'],
         success: res => {
-          for (let i = 0; i < checkNumber; i++) {
+          let count = checkNumber <= res.tempFilePaths.length ? checkNumber : res.tempFilePaths.length
+          for (let i = 0; i < count; i++) {
             let absX = this.imageList.length % this.cols
             let absY = Math.floor(this.imageList.length / this.cols)
             let x = absX * this.imageWidth + 'rpx'
             let y = absY * this.imageWidth + 'rpx'
-
+            
             this.imageList.push({
               src: res.tempFilePaths[i],
               x,
