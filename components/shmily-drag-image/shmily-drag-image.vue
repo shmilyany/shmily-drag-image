@@ -100,6 +100,7 @@ export default {
   },
   methods: {
     onChange(e, item) {
+      if(!item) return
       item.oldX = e.detail.x
       item.oldY = e.detail.y
       if (e.detail.source === 'touch') {

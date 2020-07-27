@@ -5,10 +5,10 @@
 ## 使用方式：
 ### 在 script 中引用组件
 ```
-import shmilyImageDrag from '@/components/shmily-drag-image/shmily-drag-image.vue'
+import shmilyDragImage from '@/components/shmily-drag-image/shmily-drag-image.vue'
 export default {
   components: {
-    shmilyImageDrag
+    shmilyDragImage
   },
   data() {
     return {
