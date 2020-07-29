@@ -19,7 +19,7 @@ export default {
 ```
 ### 在 template 中使用组件
 ```
-<shmily-image-drag :list.sync="list" :number="6" :imageWidth="230"></shmily-image-drag>
+<shmily-drag-image :list.sync="list" :number="6" :imageWidth="230"></shmily-drag-image>
 ```
 ---
 
