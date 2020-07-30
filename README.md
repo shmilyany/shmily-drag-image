@@ -2,6 +2,12 @@
 ## shmily-drag-image
 实际效果建议下载示例项目看看
 [点我快速预览 Web 版](http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/)
+
+---
+
+[div拖动排序（github）](https://github.com/shmilyany/shmily-drag-image/tree/shmily-drag-view)
+
+---
 ## 使用方式：
 ### 在 script 中引用组件
 ```
@@ -19,7 +25,7 @@ export default {
 ```
 ### 在 template 中使用组件
 ```
-<shmily-drag-image :list.sync="list" :number="6" :imageWidth="230"></shmily-drag-image>
+<shmily-drag-image :list.sync="list"></shmily-drag-image>
 ```
 ---
 
@@ -29,3 +35,7 @@ export default {
 list | Array | [ ] | 排序后图片列表
 number | Number | 6 | 图片数量限制
 imageWidth | Number | 230 | 图片父容器宽度（实际显示的图片宽度为 imageWidth / 1.1 ），单位 rpx
+cols | Number | 0 | 图片列数（cols > 0 则 imageWidth 无效）
+padding | Number | 10 | 图片周围空白填充，单位 rpx
+scale | Number | 1.1 | 拖动图片时放大倍数 [0, ∞)
+opacity | Number | 0.7 | 拖动图片时不透明度

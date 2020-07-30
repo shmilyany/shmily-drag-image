@@ -80,12 +80,12 @@ export default {
       type: Number,
       default: 230
     },
-    // 图片有几列（cols > 0 则 imageWidth 无效）
+    // 图片列数（cols > 0 则 imageWidth 无效）
     cols: {
       type: Number,
       default: 0
     },
-    // 图片周围填充，单位 rpx
+    // 图片周围空白填充，单位 rpx
     padding: {
       type: Number,
       default: 10
@@ -95,7 +95,7 @@ export default {
       type: Number,
       default: 1.1
     },
-    // 拖动图片不透明度
+    // 拖动图片时不透明度
     opacity: {
       type: Number,
       default: 0.7
@@ -197,11 +197,15 @@ export default {
       })
     },
     mouseenter(){
+      //#ifdef H5
       this.imageList.forEach(v => {
         v.disable = false
       })
+      //#endif
+      
     },
     mouseleave(){
+      //#ifdef H5
       if(this.tempItem){
         this.imageList.forEach(v => {
           v.disable = true
@@ -220,6 +224,7 @@ export default {
         })
         
       }
+      //#endif
     },
     addimage() {
       let checkNumber = this.number - this.imageList.length

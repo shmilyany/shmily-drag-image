@@ -1,14 +1,14 @@
 <template>
-	<view style="height: 150vh;">
-		<shmily-image-drag :list.sync="list" :number="6" :imageWidth="230" :cols="3" :padding="10" :scale="1.1"></shmily-image-drag>
+	<view>
+		<shmily-drag-image :list.sync="list"></shmily-drag-image>
 	</view>
 </template>
 
 <script>
-  import shmilyImageDrag from '@/components/shmily-drag-image/shmily-drag-image.vue'
+  import shmilyDragImage from '@/components/shmily-drag-image/shmily-drag-image.vue'
 	export default {
     components:{
-      shmilyImageDrag
+      shmilyDragImage
     },
 		data() {
 			return {
