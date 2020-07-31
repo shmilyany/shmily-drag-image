@@ -13,17 +13,19 @@
           @mousedown="touchstart($event, item)"
           @touchend="touchend(item)"
           @mouseup="touchend(item)"
+          @click="previewImage"
           
           :style="{ width: viewWidth + 'rpx', height: viewWidth + 'rpx', 'z-index': item.zIndex, opacity: item.opacity }"
         >
           <view class="area-con" :style="{ width: childWidth, height: childWidth, transform: 'scale(' + item.scale + ')' }">
             <image class="pre-image" :src="item.src" mode="aspectFill"></image>
-            <view class="del-con" @click="delImage(item, index)">
+            <view class="del-con" @click.stop="delImage(item, index)">
               <view class="del-wrap">
                 <image
                   class="del-image"
                   src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAAAhCAYAAABX5MJvAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAhdEVYdENyZWF0aW9uIFRpbWUAMjAyMDowNzoyNSAyMTo1NDoyOU4TkJAAAADcSURBVFhH7ZfRCoMwDEXLvkjwwVf/bH/emmAyN6glTW9WBjsgwm28OeCLpj81Sil7zvlJ90UiONS/yY5VogsO6XrBg3IEQ5a/s8vRSWUAKmLqp2w5jz5BiNQEGMo3GbloDLtFXJ1IkaEuhAiiY6gEIqB4yqACSk9piIBiKQ8VUFpLviKg3C2rESKgWERCBZSWiEfgIfffYvrrsAgoISJ3Apy3zuTxcSxLQkV6ykNEPKVQkZEyiAiiZKgDIaC4upACSlcn5fM/+WuDCAHF1E/Z/N9AhkMZnPNDPI+UDjPIXgAQIGjNAAAAAElFTkSuQmCC"
                 ></image>
+                {{item.disable}}
               </view>
             </view>
           </view>
@@ -60,6 +62,7 @@ export default {
       colsValue: 0,
       viewWidth: this.imageWidth,
       tempItem: null,
+      timer: null,
     }
   },
   props: {
@@ -177,15 +180,27 @@ export default {
       }
     },
     touchstart(e, item) {
-      this.imageList.forEach(v => {
-        v.zIndex = v.index + 9
-      })
-      item.zIndex = 99
-      item.scale = this.scale
-      item.opacity = this.opacity
-      this.tempItem = item
+      console.log('touchstart')
+      item.disable = true
+      this.timer = setTimeout(() => {
+        console.log('timer')
+        
+        this.imageList.forEach(v => {
+          v.zIndex = v.index + 9
+        })
+        item.zIndex = 99
+        item.scale = this.scale
+        item.opacity = this.opacity
+        this.tempItem = item
+        clearTimeout(this.timer)
+        this.timer = null
+        this.$nextTick(() => {
+          item.disable = false
+        })
+      }, 200)
     },
     touchend(item) {
+      console.log('touchend')
       item.scale = 1
       item.opacity = 1
       item.x = item.oldX
@@ -195,6 +210,19 @@ export default {
         item.y = item.absY * this.viewWidth + 'rpx'
         this.tempItem = null
       })
+    },
+    previewImage(){
+      if(this.timer !== null){
+        clearTimeout(this.timer)
+        this.timer = null
+        console.log('click')
+        console.log(this.list)
+        uni.previewImage({
+          urls: this.list,
+          success() {
+          }
+        })
+      }
     },
     mouseenter(){
       //#ifdef H5
