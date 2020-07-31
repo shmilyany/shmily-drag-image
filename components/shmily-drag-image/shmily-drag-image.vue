@@ -7,36 +7,34 @@
           :x="item.x"
           :y="item.y"
           direction="all"
+          :damping="61.8"
           :disabled="item.disable"
           @change="onChange($event, item)"
-          @touchstart="touchstart($event, item)"
-          @mousedown="touchstart($event, item)"
-          @touchend="touchend(item)"
-          @mouseup="touchend(item)"
-          @click="previewImage"
+          @touchstart="touchstart($event, item, 1)"
+          @mousedown="touchstart($event, item, 2)"
+          @touchend="touchend(item, 1)"
+          @mouseup="touchend(item, 2)"
           
           :style="{ width: viewWidth + 'rpx', height: viewWidth + 'rpx', 'z-index': item.zIndex, opacity: item.opacity }"
         >
           <view class="area-con" :style="{ width: childWidth, height: childWidth, transform: 'scale(' + item.scale + ')' }">
             <image class="pre-image" :src="item.src" mode="aspectFill"></image>
-            <view class="del-con" @click.stop="delImage(item, index)">
+            <view class="del-con" @click="delImage(item, index)" @touchstart.stop="nothing()" @touchend.stop="nothing()" @mousedown.stop="nothing()" @mouseup.stop="nothing()">
               <view class="del-wrap">
                 <image
                   class="del-image"
                   src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAAAhCAYAAABX5MJvAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAhdEVYdENyZWF0aW9uIFRpbWUAMjAyMDowNzoyNSAyMTo1NDoyOU4TkJAAAADcSURBVFhH7ZfRCoMwDEXLvkjwwVf/bH/emmAyN6glTW9WBjsgwm28OeCLpj81Sil7zvlJ90UiONS/yY5VogsO6XrBg3IEQ5a/s8vRSWUAKmLqp2w5jz5BiNQEGMo3GbloDLtFXJ1IkaEuhAiiY6gEIqB4yqACSk9piIBiKQ8VUFpLviKg3C2rESKgWERCBZSWiEfgIfffYvrrsAgoISJ3Apy3zuTxcSxLQkV6ykNEPKVQkZEyiAiiZKgDIaC4upACSlcn5fM/+WuDCAHF1E/Z/N9AhkMZnPNDPI+UDjPIXgAQIGjNAAAAAElFTkSuQmCC"
                 ></image>
-                {{item.disable}}
               </view>
             </view>
           </view>
         </movable-view>
       </block>
-      <!-- 添加 -->
       <view
         class="add"
         v-if="imageList.length < number"
         :style="{ top: add.y, left: add.x, width: viewWidth + 'rpx', height: viewWidth + 'rpx' }"
-        @click="addimage"
+        @click="addImages"
       >
         <view class="add-wrap" :style="{ width: childWidth, height: childWidth }">
           <image
@@ -63,6 +61,8 @@ export default {
       viewWidth: this.imageWidth,
       tempItem: null,
       timer: null,
+      change: true,
+      preStatus: true,
     }
   },
   props: {
@@ -103,6 +103,11 @@ export default {
       type: Number,
       default: 0.7
     },
+    // 自定义添加（需配合 @aaddImage 事件使用）
+    custom: {
+      type: Boolean,
+      default: false
+    }
   },
   computed: {
     areaHeight() {
@@ -143,6 +148,9 @@ export default {
       item.oldX = e.detail.x
       item.oldY = e.detail.y
       if (e.detail.source === 'touch') {
+        if(item.moveEnd){
+          item.offset = Math.sqrt(Math.pow(item.oldX - item.absX * this.itemWidth, 2) + Math.pow(item.oldY - item.absY * this.itemWidth, 2))
+        }
         let x = Math.floor((e.detail.x + this.itemWidth / 2) / this.itemWidth)
         if(x >= this.colsValue) return
         let y = Math.floor((e.detail.y + this.itemWidth / 2) / this.itemWidth)
@@ -150,7 +158,9 @@ export default {
         if (item.index != index && index < this.imageList.length) {
           for (let obj of this.imageList) {
             if (item.index > index && obj.index >= index && obj.index < item.index) {
+              this.change = false
               obj.index += 1
+              obj.offset = 0
               obj.x = obj.oldX
               obj.y = obj.oldY
               obj.absX = obj.index % this.colsValue
@@ -161,7 +171,9 @@ export default {
               })
             }
             if (item.index < index && obj.index <= index && obj.index > item.index) {
+              this.change = false
               obj.index -= 1
+              obj.offset = 0
               obj.x = obj.oldX
               obj.y = obj.oldY
               obj.absX = obj.index % this.colsValue
@@ -179,49 +191,53 @@ export default {
         }
       }
     },
-    touchstart(e, item) {
-      console.log('touchstart')
-      item.disable = true
+    touchstart(e, item, i) {
+      this.imageList.forEach(v => {
+        v.zIndex = v.index + 9
+      })
+      item.zIndex = 99
+      item.moveEnd = true
+      this.tempItem = item
       this.timer = setTimeout(() => {
-        console.log('timer')
-        
-        this.imageList.forEach(v => {
-          v.zIndex = v.index + 9
-        })
-        item.zIndex = 99
         item.scale = this.scale
         item.opacity = this.opacity
-        this.tempItem = item
         clearTimeout(this.timer)
         this.timer = null
-        this.$nextTick(() => {
-          item.disable = false
-        })
       }, 200)
     },
-    touchend(item) {
-      console.log('touchend')
+    touchend(item, i) {
+      this.previewImage(item)
       item.scale = 1
       item.opacity = 1
       item.x = item.oldX
       item.y = item.oldY
+      this.change = true
+      item.offset = 0
+      item.moveEnd = false
       this.$nextTick(() => {
         item.x = item.absX * this.viewWidth + 'rpx'
         item.y = item.absY * this.viewWidth + 'rpx'
         this.tempItem = null
       })
     },
-    previewImage(){
-      if(this.timer !== null){
+    previewImage(item){
+      if(this.timer && this.preStatus && this.change && item.offset < 28.28){
         clearTimeout(this.timer)
         this.timer = null
-        console.log('click')
-        console.log(this.list)
+        let src = this.list.findIndex(v => v === item.src)
         uni.previewImage({
           urls: this.list,
-          success() {
+          current: src,
+          success: () => {
+            this.preStatus = false
+            setTimeout(() => {
+              this.preStatus = true
+            }, 1000)
           }
         })
+      } else if (this.timer){
+        clearTimeout(this.timer)
+        this.timer = null
       }
     },
     mouseenter(){
@@ -238,7 +254,13 @@ export default {
         this.imageList.forEach(v => {
           v.disable = true
           v.zIndex = v.index + 9
+          v.offset = 0
+          v.moveEnd = false
           if(v.id == this.tempItem.id){
+            if (this.timer){
+              clearTimeout(this.timer)
+              this.timer = null
+            }
             v.scale = 1
             v.opacity = 1
             v.x = v.oldX
@@ -250,22 +272,29 @@ export default {
             })
           }
         })
-        
+        this.change = true
       }
       //#endif
     },
-    addimage() {
-      let checkNumber = this.number - this.imageList.length
-      uni.chooseImage({
-        count: checkNumber,
-        sourceType: ['album', 'camera'],
-        success: res => {
-          let count = checkNumber <= res.tempFilePaths.length ? checkNumber : res.tempFilePaths.length
-          for (let i = 0; i < count; i++) {
-            this.addProperties(res.tempFilePaths[i])
+    addImages() {
+      if(this.custom){
+        this.$emit('addImage')
+      } else {
+        let checkNumber = this.number - this.imageList.length
+        uni.chooseImage({
+          count: checkNumber,
+          sourceType: ['album', 'camera'],
+          success: res => {
+            let count = checkNumber <= res.tempFilePaths.length ? checkNumber : res.tempFilePaths.length
+            for (let i = 0; i < count; i++) {
+              this.addProperties(res.tempFilePaths[i])
+            }
           }
-        }
-      })
+        })
+      }
+    },
+    addImage(image){
+      this.addProperties(image)
     },
     delImage(item, index){
       this.imageList.splice(index, 1)
@@ -315,14 +344,15 @@ export default {
         opacity: 1,
         index: this.imageList.length,
         id: this.guid(),
-        disable: false
+        disable: false,
+        offset: 0,
+        moveEnd: false
       })
-
       this.add.x = (this.imageList.length % this.colsValue) * this.viewWidth + 'rpx'
       this.add.y = Math.floor(this.imageList.length / this.colsValue) * this.viewWidth + 'rpx'
-
       this.sortList()
     },
+    nothing(){},
     guid() {
     	function S4() {
     		return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
