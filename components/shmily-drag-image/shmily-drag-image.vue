@@ -102,7 +102,7 @@ export default {
       type: Number,
       default: 0.7
     },
-    // 是否自定义添加，需配合 @addImage 使用
+    // 自定义添加（需配合 @aaddImage 事件使用）
     custom: {
       type: Boolean,
       default: false
