@@ -7,6 +7,7 @@
           :x="item.x"
           :y="item.y"
           direction="all"
+          :damping="61.8"
           :disabled="item.disable"
           @change="onChange($event, item)"
           @touchstart="touchstart($event, item)"
@@ -18,7 +19,7 @@
         >
           <view class="area-con" :style="{ width: childWidth, height: childWidth, transform: 'scale(' + item.scale + ')' }">
             <image class="pre-image" :src="item.src" mode="aspectFill"></image>
-            <view class="del-con" @click="delImage(item, index)">
+            <view class="del-con" @click="delImage(item, index)" @touchstart.stop="nothing()" @touchend.stop="nothing()" @mousedown.stop="nothing()" @mouseup.stop="nothing()">
               <view class="del-wrap">
                 <image
                   class="del-image"
@@ -29,12 +30,11 @@
           </view>
         </movable-view>
       </block>
-      <!-- 添加 -->
       <view
         class="add"
         v-if="imageList.length < number"
         :style="{ top: add.y, left: add.x, width: viewWidth + 'rpx', height: viewWidth + 'rpx' }"
-        @click="addimage"
+        @click="addImages"
       >
         <view class="add-wrap" :style="{ width: childWidth, height: childWidth }">
           <image
@@ -60,6 +60,8 @@ export default {
       colsValue: 0,
       viewWidth: this.imageWidth,
       tempItem: null,
+      timer: null,
+      change: true,
     }
   },
   props: {
@@ -80,12 +82,12 @@ export default {
       type: Number,
       default: 230
     },
-    // 图片有几列（cols > 0 则 imageWidth 无效）
+    // 图片列数（cols > 0 则 imageWidth 无效）
     cols: {
       type: Number,
       default: 0
     },
-    // 图片周围填充，单位 rpx
+    // 图片周围空白填充，单位 rpx
     padding: {
       type: Number,
       default: 10
@@ -95,11 +97,16 @@ export default {
       type: Number,
       default: 1.1
     },
-    // 拖动图片不透明度
+    // 拖动图片时不透明度
     opacity: {
       type: Number,
       default: 0.7
     },
+    // 是否自定义添加，需配合 @addImage 使用
+    custom: {
+      type: Boolean,
+      default: false
+    }
   },
   computed: {
     areaHeight() {
@@ -140,6 +147,9 @@ export default {
       item.oldX = e.detail.x
       item.oldY = e.detail.y
       if (e.detail.source === 'touch') {
+        if(item.moveEnd){
+          item.offset = Math.sqrt(Math.pow(item.oldX - item.absX * this.itemWidth, 2) + Math.pow(item.oldY - item.absY * this.itemWidth, 2))
+        }
         let x = Math.floor((e.detail.x + this.itemWidth / 2) / this.itemWidth)
         if(x >= this.colsValue) return
         let y = Math.floor((e.detail.y + this.itemWidth / 2) / this.itemWidth)
@@ -147,7 +157,9 @@ export default {
         if (item.index != index && index < this.imageList.length) {
           for (let obj of this.imageList) {
             if (item.index > index && obj.index >= index && obj.index < item.index) {
+              this.change = false
               obj.index += 1
+              obj.offset = 0
               obj.x = obj.oldX
               obj.y = obj.oldY
               obj.absX = obj.index % this.colsValue
@@ -158,7 +170,9 @@ export default {
               })
             }
             if (item.index < index && obj.index <= index && obj.index > item.index) {
+              this.change = false
               obj.index -= 1
+              obj.offset = 0
               obj.x = obj.oldX
               obj.y = obj.oldY
               obj.absX = obj.index % this.colsValue
@@ -181,32 +195,68 @@ export default {
         v.zIndex = v.index + 9
       })
       item.zIndex = 99
-      item.scale = this.scale
-      item.opacity = this.opacity
+      item.moveEnd = true
       this.tempItem = item
+      this.timer = setTimeout(() => {
+        item.scale = this.scale
+        item.opacity = this.opacity
+        clearTimeout(this.timer)
+        this.timer = null
+      }, 200)
     },
     touchend(item) {
+      this.previewImage(item)
       item.scale = 1
       item.opacity = 1
       item.x = item.oldX
       item.y = item.oldY
+      this.change = true
+      item.offset = 0
+      item.moveEnd = false
       this.$nextTick(() => {
         item.x = item.absX * this.viewWidth + 'rpx'
         item.y = item.absY * this.viewWidth + 'rpx'
         this.tempItem = null
       })
     },
+    previewImage(item){
+      if(this.timer && this.change && item.offset < 28.28){
+        clearTimeout(this.timer)
+        this.timer = null
+        let src = this.list.findIndex(v => v === item.src)
+        uni.previewImage({
+          urls: this.list,
+          current: src,
+          success() {
+            
+          }
+        })
+      } else if (this.timer){
+        clearTimeout(this.timer)
+        this.timer = null
+      }
+    },
     mouseenter(){
+      //#ifdef H5
       this.imageList.forEach(v => {
         v.disable = false
       })
+      //#endif
+      
     },
     mouseleave(){
+      //#ifdef H5
       if(this.tempItem){
         this.imageList.forEach(v => {
           v.disable = true
           v.zIndex = v.index + 9
+          v.offset = 0
+          v.moveEnd = false
           if(v.id == this.tempItem.id){
+            if (this.timer){
+              clearTimeout(this.timer)
+              this.timer = null
+            }
             v.scale = 1
             v.opacity = 1
             v.x = v.oldX
@@ -218,21 +268,29 @@ export default {
             })
           }
         })
-        
+        this.change = true
+      }
+      //#endif
+    },
+    addImages() {
+      if(this.custom){
+        this.$emit('addImage')
+      } else {
+        let checkNumber = this.number - this.imageList.length
+        uni.chooseImage({
+          count: checkNumber,
+          sourceType: ['album', 'camera'],
+          success: res => {
+            let count = checkNumber <= res.tempFilePaths.length ? checkNumber : res.tempFilePaths.length
+            for (let i = 0; i < count; i++) {
+              this.addProperties(res.tempFilePaths[i])
+            }
+          }
+        })
       }
     },
-    addimage() {
-      let checkNumber = this.number - this.imageList.length
-      uni.chooseImage({
-        count: checkNumber,
-        sourceType: ['album', 'camera'],
-        success: res => {
-          let count = checkNumber <= res.tempFilePaths.length ? checkNumber : res.tempFilePaths.length
-          for (let i = 0; i < count; i++) {
-            this.addProperties(res.tempFilePaths[i])
-          }
-        }
-      })
+    addImage(image){
+      this.addProperties(image)
     },
     delImage(item, index){
       this.imageList.splice(index, 1)
@@ -282,7 +340,9 @@ export default {
         opacity: 1,
         index: this.imageList.length,
         id: this.guid(),
-        disable: false
+        disable: false,
+        offset: 0,
+        moveEnd: false
       })
 
       this.add.x = (this.imageList.length % this.colsValue) * this.viewWidth + 'rpx'
@@ -290,6 +350,7 @@ export default {
 
       this.sortList()
     },
+    nothing(){},
     guid() {
     	function S4() {
     		return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
