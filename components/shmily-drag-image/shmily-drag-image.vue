@@ -7,19 +7,18 @@
           :x="item.x"
           :y="item.y"
           direction="all"
-          :damping="61.8"
+          :damping="40"
           :disabled="item.disable"
           @change="onChange($event, item)"
-          @touchstart="touchstart($event, item, 1)"
-          @mousedown="touchstart($event, item, 2)"
-          @touchend="touchend(item, 1)"
-          @mouseup="touchend(item, 2)"
-          
-          :style="{ width: viewWidth + 'rpx', height: viewWidth + 'rpx', 'z-index': item.zIndex, opacity: item.opacity }"
+          @touchstart="touchstart(item)"
+          @mousedown="touchstart(item)"
+          @touchend="touchend(item)"
+          @mouseup="touchend(item)"
+          :style="{ width: viewWidth + 'px', height: viewWidth + 'px', 'z-index': item.zIndex, opacity: item.opacity }"
         >
           <view class="area-con" :style="{ width: childWidth, height: childWidth, transform: 'scale(' + item.scale + ')' }">
             <image class="pre-image" :src="item.src" mode="aspectFill"></image>
-            <view class="del-con" @click="delImage(item, index)" @touchstart.stop="nothing()" @touchend.stop="nothing()" @mousedown.stop="nothing()" @mouseup.stop="nothing()">
+            <view class="del-con" @click="delImage(item, index)" @touchstart.stop="delImageMp(item, index)" @touchend.stop="nothing()" @mousedown.stop="nothing()" @mouseup.stop="nothing()">
               <view class="del-wrap">
                 <image
                   class="del-image"
@@ -33,7 +32,7 @@
       <view
         class="add"
         v-if="imageList.length < number"
-        :style="{ top: add.y, left: add.x, width: viewWidth + 'rpx', height: viewWidth + 'rpx' }"
+        :style="{ top: add.y, left: add.x, width: viewWidth + 'px', height: viewWidth + 'px' }"
         @click="addImages"
       >
         <view class="add-wrap" :style="{ width: childWidth, height: childWidth }">
@@ -52,16 +51,16 @@ export default {
   data() {
     return {
       imageList: [],
-      itemWidth: 0,
+      width: 0,
       add: {
         x: 0,
         y: 0
       },
       colsValue: 0,
-      viewWidth: this.imageWidth,
+      viewWidth: 0,
       tempItem: null,
       timer: null,
-      change: true,
+      changeStatus: true,
       preStatus: true,
     }
   },
@@ -112,35 +111,32 @@ export default {
   computed: {
     areaHeight() {
       if (this.imageList.length < this.number) {
-        return Math.ceil((this.imageList.length + 1) / this.colsValue) * this.viewWidth + 'rpx'
+        return Math.ceil((this.imageList.length + 1) / this.colsValue) * this.viewWidth + 'px'
       } else {
-        return Math.ceil(this.imageList.length / this.colsValue) * this.viewWidth + 'rpx'
+        return Math.ceil(this.imageList.length / this.colsValue) * this.viewWidth + 'px'
       }
     },
     childWidth() {
-      return this.viewWidth - this.padding * 2 + 'rpx'
+      return this.viewWidth - this.rpx2px(this.padding) * 2 + 'px'
     },
+  },
+  created() {
+    this.width = uni.getSystemInfoSync().windowWidth
+    this.viewWidth = this.rpx2px(this.imageWidth)
   },
   mounted() {
     const query = uni.createSelectorQuery().in(this)
-    query.select('.add').boundingClientRect()
-    query.select('.area').boundingClientRect()
-    
-    query.exec(data => {
-      this.itemWidth = data[0].width
-      this.colsValue = Math.floor(data[1].width / this.itemWidth)
+    query.select('.area').boundingClientRect(data => {
+      this.colsValue = Math.floor(data.width / this.viewWidth)
       if(this.cols > 0){
         this.colsValue = this.cols
-        this.itemWidth = data[1].width / this.cols
-        this.viewWidth = data[1].width / uni.getSystemInfoSync().windowWidth * 750 / this.cols
-        //#ifdef H5
-        this.viewWidth = data[1].width / window.innerWidth * 750 / this.cols
-        //#endif
+        this.viewWidth = data.width / this.cols
       }
       for (let item of this.list) {
         this.addProperties(item)
       }
     })
+    query.exec()
   },
   methods: {
     onChange(e, item) {
@@ -149,39 +145,29 @@ export default {
       item.oldY = e.detail.y
       if (e.detail.source === 'touch') {
         if(item.moveEnd){
-          item.offset = Math.sqrt(Math.pow(item.oldX - item.absX * this.itemWidth, 2) + Math.pow(item.oldY - item.absY * this.itemWidth, 2))
+          item.offset = Math.sqrt(Math.pow(item.oldX - item.absX * this.viewWidth, 2) + Math.pow(item.oldY - item.absY * this.viewWidth, 2))
         }
-        let x = Math.floor((e.detail.x + this.itemWidth / 2) / this.itemWidth)
+        let x = Math.floor((e.detail.x + this.viewWidth / 2) / this.viewWidth)
         if(x >= this.colsValue) return
-        let y = Math.floor((e.detail.y + this.itemWidth / 2) / this.itemWidth)
+        let y = Math.floor((e.detail.y + this.viewWidth / 2) / this.viewWidth)
         let index = this.colsValue * y + x
         if (item.index != index && index < this.imageList.length) {
+          this.changeStatus = false
           for (let obj of this.imageList) {
             if (item.index > index && obj.index >= index && obj.index < item.index) {
-              this.change = false
-              obj.index += 1
+              this.change(obj, 1)
+            } else if (item.index < index && obj.index <= index && obj.index > item.index) {
+              this.change(obj, -1)
+            } else if(obj.id != item.id) {
               obj.offset = 0
               obj.x = obj.oldX
               obj.y = obj.oldY
-              obj.absX = obj.index % this.colsValue
-              obj.absY = Math.floor(obj.index / this.colsValue)
-              this.$nextTick(() => {
-                obj.x = obj.absX * this.viewWidth + 'rpx'
-                obj.y = obj.absY * this.viewWidth + 'rpx'
-              })
-            }
-            if (item.index < index && obj.index <= index && obj.index > item.index) {
-              this.change = false
-              obj.index -= 1
-              obj.offset = 0
-              obj.x = obj.oldX
-              obj.y = obj.oldY
-              obj.absX = obj.index % this.colsValue
-              obj.absY = Math.floor(obj.index / this.colsValue)
-              this.$nextTick(() => {
-                obj.x = obj.absX * this.viewWidth + 'rpx'
-                obj.y = obj.absY * this.viewWidth + 'rpx'
-              })
+              setTimeout(() => {
+                this.$nextTick(() => {
+                  obj.x = obj.absX * this.viewWidth
+                  obj.y = obj.absY * this.viewWidth
+                })
+              }, 0)
             }
           }
           item.index = index
@@ -191,7 +177,21 @@ export default {
         }
       }
     },
-    touchstart(e, item, i) {
+    change(obj, i){
+      obj.index += i
+      obj.offset = 0
+      obj.x = obj.oldX
+      obj.y = obj.oldY
+      obj.absX = obj.index % this.colsValue
+      obj.absY = Math.floor(obj.index / this.colsValue)
+      setTimeout(() => {
+        this.$nextTick(() => {
+          obj.x = obj.absX * this.viewWidth
+          obj.y = obj.absY * this.viewWidth
+        })
+      }, 0)
+    },
+    touchstart(item) {
       this.imageList.forEach(v => {
         v.zIndex = v.index + 9
       })
@@ -205,23 +205,25 @@ export default {
         this.timer = null
       }, 200)
     },
-    touchend(item, i) {
+    touchend(item) {
       this.previewImage(item)
       item.scale = 1
       item.opacity = 1
       item.x = item.oldX
       item.y = item.oldY
-      this.change = true
       item.offset = 0
       item.moveEnd = false
-      this.$nextTick(() => {
-        item.x = item.absX * this.viewWidth + 'rpx'
-        item.y = item.absY * this.viewWidth + 'rpx'
-        this.tempItem = null
-      })
+      setTimeout(() => {
+        this.$nextTick(() => {
+          item.x = item.absX * this.viewWidth
+          item.y = item.absY * this.viewWidth
+          this.tempItem = null
+          this.changeStatus = true
+        })
+      }, 0)
     },
     previewImage(item){
-      if(this.timer && this.preStatus && this.change && item.offset < 28.28){
+      if(this.timer && this.preStatus && this.changeStatus && item.offset < 28.28){
         clearTimeout(this.timer)
         this.timer = null
         let src = this.list.findIndex(v => v === item.src)
@@ -232,7 +234,7 @@ export default {
             this.preStatus = false
             setTimeout(() => {
               this.preStatus = true
-            }, 1000)
+            }, 600)
           }
         })
       } else if (this.timer){
@@ -266,13 +268,13 @@ export default {
             v.x = v.oldX
             v.y = v.oldY
             this.$nextTick(() => {
-              v.x = v.absX * this.viewWidth + 'rpx'
-              v.y = v.absY * this.viewWidth + 'rpx'
+              v.x = v.absX * this.viewWidth
+              v.y = v.absY * this.viewWidth
               this.tempItem = null
             })
           }
         })
-        this.change = true
+        this.changeStatus = true
       }
       //#endif
     },
@@ -306,14 +308,19 @@ export default {
           obj.absX = obj.index % this.colsValue
           obj.absY = Math.floor(obj.index / this.colsValue)
           this.$nextTick(() => {
-            obj.x = obj.absX * this.viewWidth + 'rpx'
-            obj.y = obj.absY * this.viewWidth + 'rpx'
+            obj.x = obj.absX * this.viewWidth
+            obj.y = obj.absY * this.viewWidth
           })
         }
       }
-      this.add.x = (this.imageList.length % this.colsValue) * this.viewWidth + 'rpx'
-      this.add.y = Math.floor(this.imageList.length / this.colsValue) * this.viewWidth + 'rpx'
+      this.add.x = (this.imageList.length % this.colsValue) * this.viewWidth + 'px'
+      this.add.y = Math.floor(this.imageList.length / this.colsValue) * this.viewWidth + 'px'
       this.sortList()
+    },
+    delImageMp(item, index){
+      //#ifdef MP
+      this.delImage(item, index)
+      //#endif
     },
     sortList() {
       let list = this.imageList.slice()
@@ -328,9 +335,8 @@ export default {
     addProperties(item){
       let absX = this.imageList.length % this.colsValue
       let absY = Math.floor(this.imageList.length / this.colsValue)
-      let x = absX * this.viewWidth + 'rpx'
-      let y = absY * this.viewWidth + 'rpx'
-      
+      let x = absX * this.viewWidth
+      let y = absY * this.viewWidth
       this.imageList.push({
         src: item,
         x,
@@ -348,11 +354,14 @@ export default {
         offset: 0,
         moveEnd: false
       })
-      this.add.x = (this.imageList.length % this.colsValue) * this.viewWidth + 'rpx'
-      this.add.y = Math.floor(this.imageList.length / this.colsValue) * this.viewWidth + 'rpx'
+      this.add.x = (this.imageList.length % this.colsValue) * this.viewWidth + 'px'
+      this.add.y = Math.floor(this.imageList.length / this.colsValue) * this.viewWidth + 'px'
       this.sortList()
     },
     nothing(){},
+    rpx2px(v){
+      return this.width * v / 750
+    },
     guid() {
     	function S4() {
     		return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);

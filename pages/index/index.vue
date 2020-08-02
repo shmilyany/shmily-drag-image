@@ -1,10 +1,10 @@
 <template>
 	<view>
     <!-- 基本使用 -->
-		<!-- <shmily-drag-image :list.sync="list"></shmily-drag-image> -->
+		<shmily-drag-image :list.sync="list"></shmily-drag-image>
     
     <!-- 限定图片宽度 -->
-    <shmily-drag-image :list.sync="list" :imageWidth="224"></shmily-drag-image>
+    <!-- <shmily-drag-image :list.sync="list" :imageWidth="224"></shmily-drag-image> -->
     
     <!-- 限定列数 -->
 		<!-- <shmily-drag-image :list.sync="list" :cols="3"></shmily-drag-image> -->
