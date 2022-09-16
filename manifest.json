@@ -1,6 +1,6 @@
 {
-    "name" : "aaaa",
-    "appid" : "",
+    "name" : "多图上传支持拖拽排序【全端支持】示例",
+    "appid" : "__UNI__034E9A7",
     "description" : "",
     "versionName" : "1.0.0",
     "versionCode" : "100",
@@ -60,9 +60,10 @@
     "quickapp" : {},
     /* 小程序特有相关 */
     "mp-weixin" : {
-        "appid" : "",
+        "appid" : "wxe098cf6cb2335c23",
         "setting" : {
-            "urlCheck" : false
+            "urlCheck" : false,
+            "minified" : true
         },
         "usingComponents" : true
     },
@@ -85,5 +86,6 @@
         },
         "title" : "图片拖拽排序",
         "domain" : "shmily-drag-image"
-    }
+    },
+    "vueVersion" : "2"
 }

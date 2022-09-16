@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "图片拖拽排序",
+  "usingComponents": {
+    "shmily-drag-image": "/uni_modules/shmily-drag-image/components/shmily-drag-image/shmily-drag-image"
+  }
+}
