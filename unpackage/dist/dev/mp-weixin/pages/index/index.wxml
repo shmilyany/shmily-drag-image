@@ -1,1 +1,0 @@
-<view style="background-color:#2e2e2e;min-height:100vh;width:100vw;"><shmily-drag-image bind:input="__e" vue-id="8dd740cc-1" value="{{list}}" data-event-opts="{{[['^input',[['__set_model',['','list','$event',[]]]]]]}}" bind:__l="__l"></shmily-drag-image></view>
