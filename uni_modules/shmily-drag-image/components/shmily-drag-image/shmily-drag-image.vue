@@ -376,7 +376,7 @@
       },
       addImages() {
         if (typeof this.addImage === 'function') {
-          this.addImage.bind(this)()
+          this.addImage.bind(this.$parent)()
         } else {
           let checkNumber = this.number - this.imageList.length
           uni.chooseImage({
@@ -394,26 +394,31 @@
       },
       delImages(item, index) {
         if (typeof this.delImage === 'function') {
-          this.delImage(() => {
-            this.imageList.splice(index, 1)
-            for (let obj of this.imageList) {
-              if (obj.index > item.index) {
-                obj.index -= 1
-                obj.x = obj.oldX
-                obj.y = obj.oldY
-                obj.absX = obj.index % this.colsValue
-                obj.absY = Math.floor(obj.index / this.colsValue)
-                this.$nextTick(() => {
-                  obj.x = obj.absX * this.viewWidth
-                  obj.y = obj.absY * this.viewWidth
-                })
-              }
-            }
-            this.add.x = (this.imageList.length % this.colsValue) * this.viewWidth + 'px'
-            this.add.y = Math.floor(this.imageList.length / this.colsValue) * this.viewWidth + 'px'
-            this.sortList()
+          this.delImage.bind(this.$parent)(() => {
+            this.delImageHandle(item, index)
           })
+        } else {
+          this.delImageHandle(item, index)
         }
+      },
+      delImageHandle(item, index) {
+        this.imageList.splice(index, 1)
+        for (let obj of this.imageList) {
+          if (obj.index > item.index) {
+            obj.index -= 1
+            obj.x = obj.oldX
+            obj.y = obj.oldY
+            obj.absX = obj.index % this.colsValue
+            obj.absY = Math.floor(obj.index / this.colsValue)
+            this.$nextTick(() => {
+              obj.x = obj.absX * this.viewWidth
+              obj.y = obj.absY * this.viewWidth
+            })
+          }
+        }
+        this.add.x = (this.imageList.length % this.colsValue) * this.viewWidth + 'px'
+        this.add.y = Math.floor(this.imageList.length / this.colsValue) * this.viewWidth + 'px'
+        this.sortList()
       },
       delImageMp(item, index) {
         //#ifdef MP

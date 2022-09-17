@@ -9,7 +9,13 @@
 
 > 点击预览、长按拖拽排序、自定义添加图片、删除确认、支持对象数组
 
+## 预览
+您可以通过微信扫码，查看最佳的演示效果。
+
+![wp](https://web.shmily.ren/shmily-drag-image/static/wp.jpg)
+
 ## 基本使用：
+
 ```
 <shmily-drag-image v-model="list"></shmily-drag-image>
 
@@ -18,9 +24,9 @@ export default {
   data() {
     return {
       list: [
-        'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/1.jpg',
-        'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/2.jpg',
-        'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/3.jpg',
+        'http://web.shmily.ren/shmily-drag-image/static/1.jpg',
+        'http://web.shmily.ren/shmily-drag-image/static/2.jpg',
+        'http://web.shmily.ren/shmily-drag-image/static/3.jpg',
       ]
     }
   }
@@ -36,16 +42,16 @@ export default {
   data() {
     return {
       list: [
-        'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/1.jpg',
-        'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/2.jpg',
-        'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/3.jpg',
+        'http://web.shmily.ren/shmily-drag-image/static/1.jpg',
+        'http://web.shmily.ren/shmily-drag-image/static/2.jpg',
+        'http://web.shmily.ren/shmily-drag-image/static/3.jpg',
       ]
     }
   },
   methods:{
     addImage() {
       // 将图片地址添加到图片数组
-      this.list.push('http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/4.jpg')
+      this.list.push('http://web.shmily.ren/shmily-drag-image/static/4.jpg')
     },
     delImage(done) {
       uni.showModal({
@@ -72,13 +78,13 @@ export default {
     return {
       list: [
         {
-          src: 'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/1.jpg',
+          src: 'http://web.shmily.ren/shmily-drag-image/static/1.jpg',
         },
         {
-          src: 'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/2.jpg',
+          src: 'http://web.shmily.ren/shmily-drag-image/static/2.jpg',
         },
         {
-          src: 'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/3.jpg',
+          src: 'http://web.shmily.ren/shmily-drag-image/static/3.jpg',
         }
       ]
     }
@@ -96,7 +102,7 @@ v-model | Array | [ ] | 图片数组，元素为图片地址字符串或对象�
 keyName | String | null | 从图片数组元素对象中读取的键名
 number | Number | 6 | 图片数量限制
 imageWidth | Number | 0 | 图片父容器宽度（实际显示的图片宽度为 imageWidth / 1.1 ），单位 rpx。imageWidth > 0 则 cols 无效
-cols | Number | 3 | 图片列数（cols > 0 则 imageWidth 无效）
+cols | Number | 3 | 图片列数
 borderRadius | Number | 0 | 图片圆角，单位 rpx
 padding | Number | 10 | 图片周围空白填充，单位 rpx
 scale | Number | 1.1 | 拖动图片时放大倍数 [0, ∞)

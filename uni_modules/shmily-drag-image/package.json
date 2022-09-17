@@ -1,7 +1,7 @@
 {
   "id": "shmily-drag-image",
   "displayName": "图片拖拽排序",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "图片排序、图片拖动排序",
   "keywords": [
     "drag",

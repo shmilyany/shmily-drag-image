@@ -1,5 +1,5 @@
 <template>
-  <view style="background-color: #2e2e2e;min-height: 100vh;width: 100vw;">
+  <view style="min-height: 100vh;width: 100vw;">
     <!-- 基本使用 -->
     <shmily-drag-image v-model="list"></shmily-drag-image>
 
@@ -23,19 +23,19 @@
       return {
         // 排序后的图片列表
         list: [
-          'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/1.jpg',
-          'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/2.jpg',
-          'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/3.jpg',
+          'https://web.shmily.ren/shmily-drag-image/static/1.jpg',
+          'https://web.shmily.ren/shmily-drag-image/static/2.jpg',
+          'https://web.shmily.ren/shmily-drag-image/static/3.jpg',
         ],
         lists: [
           {
-            src: 'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/1.jpg',
+            src: 'https://web.shmily.ren/shmily-drag-image/static/1.jpg',
           },
           {
-            src: 'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/2.jpg',
+            src: 'https://web.shmily.ren/shmily-drag-image/static/2.jpg',
           },
           {
-            src: 'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/3.jpg',
+            src: 'https://web.shmily.ren/shmily-drag-image/static/3.jpg',
           },
         ],
       }
@@ -44,14 +44,14 @@
       addImage() {
         console.log('addImage');
         // 将图片地址添加到图片列表
-        this.list.push('http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/4.jpg')
+        this.list.push('https://web.shmily.ren/shmily-drag-image/static/4.jpg')
       },
       addImages() {
         console.log('addImages');
         // 将图片地址添加到图片列表
         this.lists.push({
           id: 4,
-          src: 'http://static-11ea0c21-6b8f-47f7-b77f-cb0c7ea3f355.bspapp.com/shmily-drag-image/static/4.jpg',
+          src: 'https://web.shmily.ren/shmily-drag-image/static/4.jpg',
         })
       },
       delImage(done) {
